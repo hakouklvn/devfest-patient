@@ -32,14 +32,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   GestureDetector(
                     onTap: () async {
                       final messenger = ScaffoldMessenger.of(context);
+                      final theme = Theme.of(context);
                       setState(() => isLoading = true);
 
                       PatientService patientService = PatientService();
                       await patientService.orderAmbulance();
 
                       setState(() => isLoading = false);
-                      const snackBar = SnackBar(
-                        content: Text('An ambulance will arrive soon'),
+                      final snackBar = SnackBar(
+                        content: const Text('An ambulance will arrive soon'),
+                        backgroundColor: theme.primaryColor,
                       );
 
                       messenger.showSnackBar(snackBar);
