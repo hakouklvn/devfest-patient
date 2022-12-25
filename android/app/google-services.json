@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "865571598171",
+    "project_id": "devfest-dd826",
+    "storage_bucket": "devfest-dd826.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865571598171:android:e17c71799599b0c559747e",
+        "android_client_info": {
+          "package_name": "com.example.patient"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "865571598171-2nv54br1gc6p736m3lqfb3accj6g4l6q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgS2JSpR9zYWWdVzQ-8c0BSOpkKgN7pIY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "865571598171-2nv54br1gc6p736m3lqfb3accj6g4l6q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
