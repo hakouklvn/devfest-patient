@@ -1,64 +1,103 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:patient/utils/screen_navigator.dart';
-import 'package:patient/views/account_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:patient/core/config/config.dart';
+import 'package:patient/core/routes/router.gr.dart';
+import 'package:patient/core/utils/notification_handler.dart';
 
-import '../views/history.dart';
-import '../views/home_screen.dart';
+import '../features/auth/presentation/state/auth_state.dart';
+import '../features/auth/presentation/state/providers.dart';
+import '../features/settings/presentation/state/language_state.dart';
+import '../features/settings/presentation/state/providers.dart';
+import '../features/settings/presentation/state/theme_state.dart';
+import 'init_provider.dart';
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
-  int selectedIndex = 0;
+class MyAppState extends ConsumerState<MyApp> {
+  final appRouter = AppRouter();
 
   @override
   Widget build(BuildContext context) {
-    const screens = [HomeScreen(), HistoryScreen()];
-    final List destinations = [
-      {
-        "icon": const Icon(Icons.shopping_cart_checkout),
-        "selectedIcon": Icon(Icons.shopping_cart_checkout,
-            color: Theme.of(context).iconTheme.color),
-        "label": "home",
-      },
-      {
-        "icon": const Icon(Icons.settings_applications_rounded),
-        "selectedIcon":
-            Icon(Icons.settings, color: Theme.of(context).iconTheme.color),
-        "label": "history"
-      }
-    ];
+    ref.watch(initAppProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            ScreenService.goto(context, const Account());
-          },
-          icon: const Icon(Icons.account_circle),
-        ),
-      ),
-      body: screens[selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        destinations: destinations
-            .map(
-              (destination) => NavigationDestination(
-                icon: destination["icon"],
-                selectedIcon: destination["selectedIcon"],
-                label: destination["label"],
-              ),
-            )
-            .toList(),
-        onDestinationSelected: (index) => setState(() {
-          selectedIndex = index;
-        }),
-        selectedIndex: selectedIndex,
-        animationDuration: const Duration(milliseconds: 900),
-      ),
+    ref.listen<AuthState>(
+      authNotifierProvider,
+      (_, state) {
+        state.maybeMap(
+          orElse: () {},
+          authenticating: (_) => const SplashScreen(),
+          authenticated: (_) => appRouter.pushAndPopUntil(
+            const Wrapper(),
+            predicate: (route) => false,
+          ),
+          unauthenticated: (_) => appRouter.pushAndPopUntil(
+            const LoginScreen(),
+            predicate: (route) => false,
+          ),
+          signedOut: (_) => appRouter.pushAndPopUntil(
+            const LoginScreen(),
+            predicate: (route) => false,
+          ),
+        );
+      },
     );
+
+    return MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routeInformationParser: appRouter.defaultRouteParser(),
+      routerDelegate: appRouter.delegate(),
+      locale: ref.watch<LanguageState>(languageNotifierProvider).maybeMap(
+            initial: (_) => const Locale("ar"),
+            orElse: () => const Locale("ar"),
+            loaded: (data) => data.locale,
+          ),
+      theme: ref.watch<ThemeState>(themeNotifierProvider).maybeMap(
+            initial: (_) => lightThemeData(),
+            orElse: () => lightThemeData(),
+            loaded: (data) => data.themeData,
+          ),
+      debugShowCheckedModeBanner: false,
+      title: 'MyHanuut',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setupToken();
+    showNotification();
+  }
+
+  Future<void> showNotification() async {
+    NotificatioService notificatioService = NotificatioService();
+    notificatioService.init();
+
+    FirebaseMessaging.onMessage.listen(
+      (RemoteMessage message) {
+        RemoteNotification? notification = message.notification;
+        AndroidNotification? android = message.notification?.android;
+        if (notification != null && android != null) {
+          String title = notification.title ?? "";
+          String body = notification.body ?? "";
+          notificatioService.displayNotification(title, body);
+        }
+      },
+    );
+  }
+
+  Future<void> setupToken() async {
+    // String? token = await FirebaseMessaging.instance.getToken();
+    // final shopOwnerProvider = ref.read(shopNotifierProvider.notifier);
+    // await shopOwnerProvider.updateFirebaseToken(token!);
+    // FirebaseMessaging.instance.onTokenRefresh
+    //     .listen(shopOwnerProvider.updateFirebaseToken);
   }
 }

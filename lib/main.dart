@@ -1,47 +1,21 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:patient/core/config/theme/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'main/app.dart';
-import 'views/login_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeHive();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(
-    MaterialApp(
-      home: const LandingPage(),
-      theme: lightThemeData(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class LandingPage extends StatelessWidget {
-  const LandingPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (_, snapshot) {
-        if (snapshot.connectionState == ConnectionState.active) {
-          User? user = snapshot.data;
-          if (user == null) {
-            return const LoginScreen();
-          }
-          return const MyApp();
-        } else {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-      },
-    );
-  }
+Future<void> initializeHive() async {
+  await Hive.initFlutter();
+  await Hive.openBox('saveme');
 }

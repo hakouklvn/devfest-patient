@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:patient/core/config/config.dart';
 import 'package:patient/core/widgets/custom_button.dart';
-import 'package:patient/services/auth_service.dart';
 
 import '../services/patient_service.dart';
 
@@ -88,9 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(Sizes.defaultPadding),
         child: CustomButton(
-          press: () {
-            AuthService().logout();
-          },
+          press: () {},
           name: "logout",
           color: Theme.of(context).errorColor,
           height: 40,
